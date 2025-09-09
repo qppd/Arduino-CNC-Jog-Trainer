@@ -1,13 +1,13 @@
+
 // JogTrainer.ino
-// Arduino sketch for CNC Jog Trainer
+// Arduino sketch for CNC Jog Trainer with 2-axis G-code interpreter
+
 
 #include "StepperModule.h"
 #include "LimitSwitch.h"
-
 #include "PiezoBuzzer.h"
 #include "ClockModule.h"
-
-
+#include "GCodeHandler.h"
 
 // Pin assignments for Motor 1 (X axis)
 const uint8_t X_STEP_PIN = 2;
@@ -24,13 +24,21 @@ const uint8_t Y_LIMIT_PIN = 9;
 // Pin assignment for Piezo Buzzer
 const uint8_t BUZZER_PIN = 10;
 
+
+const float stepsPerMM_X = 80.0; // adjust for your hardware
+const float stepsPerMM_Y = 80.0; // adjust for your hardware
+
+
 StepperModule stepperX(X_STEP_PIN, X_DIR_PIN, X_EN_PIN);
 StepperModule stepperY(Y_STEP_PIN, Y_DIR_PIN, Y_EN_PIN);
 LimitSwitch limitX(X_LIMIT_PIN);
 LimitSwitch limitY(Y_LIMIT_PIN);
-
 PiezoBuzzer buzzer(BUZZER_PIN);
 ClockModule clock;
+
+float defaultFeedrate = 600.0;
+
+GCodeHandler gcodeHandler(stepperX, stepperY, limitX, limitY, buzzer, clock, stepsPerMM_X, stepsPerMM_Y, defaultFeedrate);
 
 
 void setup() {
@@ -41,50 +49,14 @@ void setup() {
   limitY.begin();
   buzzer.begin();
   //clock.begin();
-  Serial.println("JogTrainer Initialized. Send commands: X+/X-/Y+/Y-/BUZ/CLOCK. Limit switches on X and Y.");
+  Serial.println("CNC JogTrainer G-code Ready. Manual: X+/X-/Y+/Y-/LIM?/BUZ/CLOCK. G-code: G0/G1 X Y F");
 }
 
+
 void loop() {
-  // Simple serial command test for debugging
   if (Serial.available() > 0) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
-    Serial.println("CMD: " + cmd);
-
-    if (cmd == "X+") {
-      if (limitX.isPressed()) {
-        Serial.println("X+ limit reached! Movement blocked.");
-      } else {
-        Serial.println("Jog X+");
-        stepperX.step(true, 200, 500); // 200 steps forward
-      }
-    } else if (cmd == "X-") {
-      Serial.println("Jog X-");
-      stepperX.step(false, 200, 500); // 200 steps backward
-    } else if (cmd == "Y+") {
-      if (limitY.isPressed()) {
-        Serial.println("Y+ limit reached! Movement blocked.");
-      } else {
-        Serial.println("Jog Y+");
-        stepperY.step(true, 200, 500); // 200 steps forward
-      }
-    } else if (cmd == "Y-") {
-      Serial.println("Jog Y-");
-      stepperY.step(false, 200, 500); // 200 steps backward
-    } else if (cmd == "LIM?") {
-      Serial.print("X limit: ");
-      Serial.print(limitX.isPressed() ? "PRESSED" : "OPEN");
-      Serial.print(" | Y limit: ");
-      Serial.println(limitY.isPressed() ? "PRESSED" : "OPEN");
-    } else if (cmd == "BUZ") {
-      Serial.println("Buzzer test");
-      buzzer.beep(200);
-    } else if (cmd == "CLOCK") {
-      Serial.print("Current time: ");
-      clock.printNow(Serial);
-      Serial.println();
-    } else {
-      Serial.println("Unknown command. Use X+/X-/Y+/Y-/LIM?/BUZ/CLOCK");
-    }
+    gcodeHandler.handleLine(cmd);
   }
 }
