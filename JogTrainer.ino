@@ -3,6 +3,8 @@
 
 #include "StepperModule.h"
 #include "LimitSwitch.h"
+#include "PiezoBuzzer.h"
+
 
 
 // Pin assignments for Motor 1 (X axis)
@@ -17,10 +19,14 @@ const uint8_t Y_DIR_PIN  = 6;
 const uint8_t Y_EN_PIN   = 7;
 const uint8_t Y_LIMIT_PIN = 9;
 
+// Pin assignment for Piezo Buzzer
+const uint8_t BUZZER_PIN = 10;
+
 StepperModule stepperX(X_STEP_PIN, X_DIR_PIN, X_EN_PIN);
 StepperModule stepperY(Y_STEP_PIN, Y_DIR_PIN, Y_EN_PIN);
 LimitSwitch limitX(X_LIMIT_PIN);
 LimitSwitch limitY(Y_LIMIT_PIN);
+PiezoBuzzer buzzer(BUZZER_PIN);
 
 
 void setup() {
@@ -29,7 +35,8 @@ void setup() {
   stepperY.begin();
   limitX.begin();
   limitY.begin();
-  Serial.println("JogTrainer Initialized. Send commands: X+/X-/Y+/Y-. Limit switches on X and Y.");
+  buzzer.begin();
+  Serial.println("JogTrainer Initialized. Send commands: X+/X-/Y+/Y-/BUZ. Limit switches on X and Y.");
 }
 
 void loop() {
@@ -62,8 +69,11 @@ void loop() {
       Serial.print(limitX.isPressed() ? "PRESSED" : "OPEN");
       Serial.print(" | Y limit: ");
       Serial.println(limitY.isPressed() ? "PRESSED" : "OPEN");
+    } else if (cmd == "BUZ") {
+      Serial.println("Buzzer test");
+      buzzer.beep(200);
     } else {
-      Serial.println("Unknown command. Use X+/X-/Y+/Y- or LIM?");
+      Serial.println("Unknown command. Use X+/X-/Y+/Y-/LIM?/BUZ");
     }
   }
 }
