@@ -3,7 +3,9 @@
 
 #include "StepperModule.h"
 #include "LimitSwitch.h"
+
 #include "PiezoBuzzer.h"
+#include "ClockModule.h"
 
 
 
@@ -26,7 +28,9 @@ StepperModule stepperX(X_STEP_PIN, X_DIR_PIN, X_EN_PIN);
 StepperModule stepperY(Y_STEP_PIN, Y_DIR_PIN, Y_EN_PIN);
 LimitSwitch limitX(X_LIMIT_PIN);
 LimitSwitch limitY(Y_LIMIT_PIN);
+
 PiezoBuzzer buzzer(BUZZER_PIN);
+ClockModule clock;
 
 
 void setup() {
@@ -36,7 +40,8 @@ void setup() {
   limitX.begin();
   limitY.begin();
   buzzer.begin();
-  Serial.println("JogTrainer Initialized. Send commands: X+/X-/Y+/Y-/BUZ. Limit switches on X and Y.");
+  clock.begin();
+  Serial.println("JogTrainer Initialized. Send commands: X+/X-/Y+/Y-/BUZ/CLOCK. Limit switches on X and Y.");
 }
 
 void loop() {
@@ -72,8 +77,12 @@ void loop() {
     } else if (cmd == "BUZ") {
       Serial.println("Buzzer test");
       buzzer.beep(200);
+    } else if (cmd == "CLOCK") {
+      Serial.print("Current time: ");
+      clock.printNow(Serial);
+      Serial.println();
     } else {
-      Serial.println("Unknown command. Use X+/X-/Y+/Y-/LIM?/BUZ");
+      Serial.println("Unknown command. Use X+/X-/Y+/Y-/LIM?/BUZ/CLOCK");
     }
   }
 }
