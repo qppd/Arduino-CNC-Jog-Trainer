@@ -16,7 +16,7 @@ constexpr uint8_t X_LIMIT_PIN = 7;
 constexpr uint8_t Y_STEP_PIN = 11;
 constexpr uint8_t Y_DIR_PIN  = 10;
 constexpr uint8_t Y_EN_PIN   = 9;
-constexpr uint8_t Y_LIMIT_PIN = 12
+constexpr uint8_t Y_LIMIT_PIN = 12;
 
 // Pin assignment for Piezo Buzzer
 constexpr uint8_t BUZZER_PIN = 13;
