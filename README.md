@@ -1,8 +1,3 @@
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/qppd/Arduino-CNC-Jog-Trainer/main/logo.png" alt="Jog Trainer Logo" width="100" onerror="this.style.display='none'">
-</p>
-
 # Arduino CNC Jog Trainer
 
 <p align="center">
