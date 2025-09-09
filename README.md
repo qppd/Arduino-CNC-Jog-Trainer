@@ -1,7 +1,7 @@
 # Arduino CNC Jog Trainer
 
 <p align="center">
-  <b>Stepper</b> • <b>Limit Switch</b> • <b>Piezo Buzzer</b> • <b>DS3231 RTC</b> • <b>G-code Ready</b>
+  <b>Stepper</b> • <b>Limit Switch</b> • <b>Piezo Buzzer</b> • <b>DS3231 RTC</b> • <b>G-code Interpreter</b>
 </p>
 
 ---
@@ -13,8 +13,10 @@
 - Piezo buzzer for audio feedback
 - DS3231 Real-Time Clock (RTC) integration
 - Serial command interface for manual jogging and status
-- Ready for G-code streaming from Raspberry Pi
-- Modular C++ codebase for easy expansion
+- G-code interpreter (G0/G1) for CNC movement
+- Ready for G-code streaming from Raspberry Pi or PC
+- Modular C++ codebase: each hardware feature is encapsulated in its own class (StepperModule, LimitSwitch, PiezoBuzzer, ClockModule, GCodeHandler)
+- Customizable pin assignments in `JogTrainer.ino`
 
 ## 🛠️ Hardware Requirements
 
@@ -26,9 +28,14 @@
 - DS3231 RTC module
 - Raspberry Pi (for G-code streaming, optional)
 
+
 ## 🚀 Usage
 
-### Serial Commands
+### Serial Interface
+
+- **Baud Rate:** 115200
+
+#### Manual Commands
 
 | Command   | Description                  |
 |-----------|------------------------------|
@@ -40,14 +47,20 @@
 | `BUZ`     | Test buzzer                  |
 | `CLOCK`   | Print current RTC time       |
 
+#### G-code Support
+
+- Supports standard G-code streaming (G0/G1 X Y F) for CNC movement.
+- Example: `G1 X10 Y20 F600` (move to X=10mm, Y=20mm at 600mm/min)
+
 ### Project Structure
 
 ```text
-JogTrainer.ino         // Main sketch
+JogTrainer.ino         // Main sketch and pin assignments
 StepperModule.h/.cpp   // Stepper motor control
 LimitSwitch.h/.cpp     // Limit switch handling
 PiezoBuzzer.h/.cpp     // Buzzer control
 ClockModule.h/.cpp     // DS3231 RTC integration
+GCodeHandler.h/.cpp    // G-code command parsing and execution
 ```
 
 ### Libraries Used
@@ -59,6 +72,10 @@ ClockModule.h/.cpp     // DS3231 RTC integration
 ## 👨‍💻 About Us
 
 This project is maintained by **Quezon Province Programmers & Developers** — a community of makers, engineers, and developers from Quezon Province, Philippines. We build open-source tools and solutions for automation, education, and industry.
+
+---
+
+**Note:** Pin assignments for motors, switches, and buzzer can be customized in `JogTrainer.ino` to match your hardware setup.
 
 ## 📞 Contact
 
