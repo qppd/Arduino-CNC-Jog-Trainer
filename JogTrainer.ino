@@ -9,20 +9,8 @@
 #include "ClockModule.h"
 #include "GCodeHandler.h"
 
-// Pin assignments for Motor 1 (X axis)
-const uint8_t X_STEP_PIN = 2;
-const uint8_t X_DIR_PIN  = 3;
-const uint8_t X_EN_PIN   = 4;
-const uint8_t X_LIMIT_PIN = 8;
 
-// Pin assignments for Motor 2 (Y axis)
-const uint8_t Y_STEP_PIN = 5;
-const uint8_t Y_DIR_PIN  = 6;
-const uint8_t Y_EN_PIN   = 7;
-const uint8_t Y_LIMIT_PIN = 9;
-
-// Pin assignment for Piezo Buzzer
-const uint8_t BUZZER_PIN = 10;
+#include "Pins.h"
 
 
 const float stepsPerMM_X = 80.0; // adjust for your hardware
