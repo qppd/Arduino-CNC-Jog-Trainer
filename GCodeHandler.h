@@ -9,6 +9,7 @@ class LimitSwitch;
 class PiezoBuzzer;
 class ClockModule;
 
+
 class GCodeHandler {
 public:
     GCodeHandler(StepperModule& sx, StepperModule& sy, LimitSwitch& lx, LimitSwitch& ly, PiezoBuzzer& buz, ClockModule& clk,
@@ -28,10 +29,24 @@ private:
     float defaultFeedrate;
     long posX_steps;
     long posY_steps;
+
+    // State for feed hold, pause, home, cycle start, reset
+    bool isFeedHold;
+    bool isPaused;
+    bool isHoming;
+    bool isResetting;
+
     void jogCommand(const String& cmd);
     float parseGcodeValue(const String& line, char code, float fallback);
     void moveTo(long targetX, long targetY, float feedrate_mm_min);
     void handleGcode(const String& line);
+
+    void handleFeedHold();
+    void handlePause();
+    void handleCycleStart();
+    void handleReset();
+    void handleHome();
+    void doHome();
 };
 
 #endif // GCODEHANDLER_H

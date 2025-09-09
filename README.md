@@ -37,15 +37,22 @@
 
 #### Manual Commands
 
-| Command   | Description                  |
-|-----------|------------------------------|
-| `X+`      | Jog X axis forward           |
-| `X-`      | Jog X axis backward          |
-| `Y+`      | Jog Y axis forward           |
-| `Y-`      | Jog Y axis backward          |
-| `LIM?`    | Query limit switch status    |
-| `BUZ`     | Test buzzer                  |
-| `CLOCK`   | Print current RTC time       |
+| Command     | Description                        |
+|-------------|------------------------------------|
+| `X+`        | Jog X axis forward                 |
+| `X-`        | Jog X axis backward                |
+| `Y+`        | Jog Y axis forward                 |
+| `Y-`        | Jog Y axis backward                |
+| `LIM?`      | Query limit switch status          |
+| `BUZ`       | Test buzzer                        |
+| `CLOCK`     | Print current RTC time             |
+| `FEEDHOLD`  | Pause all motion (feed hold)       |
+| `PAUSE`     | Pause all motion                   |
+| `CYCLE`     | Resume from feed hold/pause        |
+| `START`     | Resume from feed hold/pause        |
+| `RESUME`    | Resume from feed hold/pause        |
+| `RESET`     | Stop all motion, reset state       |
+| `HOME`      | Home both axes to limit switches   |
 
 #### G-code Support
 

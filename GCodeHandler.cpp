@@ -5,16 +5,22 @@
 #include "ClockModule.h"
 #include <math.h>
 
+
 GCodeHandler::GCodeHandler(StepperModule& sx, StepperModule& sy, LimitSwitch& lx, LimitSwitch& ly, PiezoBuzzer& buz, ClockModule& clk,
-                           float stepsPerMM_X, float stepsPerMM_Y, float defaultFeedrate)
-    : stepperX(sx), stepperY(sy), limitX(lx), limitY(ly), buzzer(buz), clock(clk),
-      stepsPerMM_X(stepsPerMM_X), stepsPerMM_Y(stepsPerMM_Y), defaultFeedrate(defaultFeedrate),
-      posX_steps(0), posY_steps(0) {}
+                                                     float stepsPerMM_X, float stepsPerMM_Y, float defaultFeedrate)
+        : stepperX(sx), stepperY(sy), limitX(lx), limitY(ly), buzzer(buz), clock(clk),
+            stepsPerMM_X(stepsPerMM_X), stepsPerMM_Y(stepsPerMM_Y), defaultFeedrate(defaultFeedrate),
+            posX_steps(0), posY_steps(0),
+            isFeedHold(false), isPaused(false), isHoming(false), isResetting(false) {}
 
 long GCodeHandler::getXSteps() const { return posX_steps; }
 long GCodeHandler::getYSteps() const { return posY_steps; }
 
 void GCodeHandler::jogCommand(const String& cmd) {
+    if (isFeedHold || isPaused || isResetting || isHoming) {
+        Serial.println("Motion paused/held/homing/reset. Jog ignored.");
+        return;
+    }
     if (cmd == "X+") {
         if (limitX.isPressed()) {
             Serial.println("X+ limit reached! Movement blocked.");
@@ -66,6 +72,10 @@ float GCodeHandler::parseGcodeValue(const String& line, char code, float fallbac
 }
 
 void GCodeHandler::moveTo(long targetX, long targetY, float feedrate_mm_min) {
+    if (isFeedHold || isPaused || isResetting || isHoming) {
+        Serial.println("Motion paused/held/homing/reset. Move ignored.");
+        return;
+    }
     long dx = targetX - posX_steps;
     long dy = targetY - posY_steps;
     long abs_dx = abs(dx);
@@ -105,6 +115,10 @@ void GCodeHandler::moveTo(long targetX, long targetY, float feedrate_mm_min) {
     long err = abs_dx - abs_dy;
 
     for (long i = 0; i < total_steps; i++) {
+        if (isFeedHold || isPaused || isResetting || isHoming) {
+            Serial.println("Motion interrupted by feed hold/pause/reset/homing.");
+            break;
+        }
         long e2 = 2 * err;
         if (e2 > -abs_dy) {
             err -= abs_dy;
@@ -146,11 +160,94 @@ void GCodeHandler::handleGcode(const String& line) {
 
 void GCodeHandler::handleLine(const String& line) {
     if (line.length() == 0) return;
-    if (line == "X+" || line == "X-" || line == "Y+" || line == "Y-" || line == "LIM?" || line == "BUZ" || line == "CLOCK") {
-        jogCommand(line);
-    } else if (line.startsWith("G")) {
-        handleGcode(line);
+    String l = line;
+    l.trim();
+    l.toUpperCase();
+    if (l == "X+" || l == "X-" || l == "Y+" || l == "Y-" || l == "LIM?" || l == "BUZ" || l == "CLOCK") {
+        jogCommand(l);
+    } else if (l == "FEEDHOLD" || l == "HOLD") {
+        handleFeedHold();
+    } else if (l == "PAUSE") {
+        handlePause();
+    } else if (l == "CYCLE" || l == "START" || l == "RESUME") {
+        handleCycleStart();
+    } else if (l == "RESET") {
+        handleReset();
+    } else if (l == "HOME") {
+        handleHome();
+    } else if (l.startsWith("G")) {
+        handleGcode(l);
     } else {
-        Serial.println("Unknown command. Use X+/X-/Y+/Y-/LIM?/BUZ/CLOCK or G-code");
+        Serial.println("Unknown command. Use X+/X-/Y+/Y-/LIM?/BUZ/CLOCK/FEEDHOLD/PAUSE/CYCLE/RESET/HOME or G-code");
     }
+}
+
+void GCodeHandler::handleFeedHold() {
+    isFeedHold = true;
+    Serial.println("Feed hold activated. Motion paused.");
+}
+
+void GCodeHandler::handlePause() {
+    isPaused = true;
+    Serial.println("Pause activated. Motion paused.");
+}
+
+void GCodeHandler::handleCycleStart() {
+    if (isFeedHold || isPaused) {
+        isFeedHold = false;
+        isPaused = false;
+        Serial.println("Cycle start. Motion resumed.");
+    } else {
+        Serial.println("Not paused or held. Nothing to resume.");
+    }
+}
+
+void GCodeHandler::handleReset() {
+    isFeedHold = false;
+    isPaused = false;
+    isResetting = true;
+    Serial.println("Resetting system. All motion stopped. State reset.");
+    // Optionally, reset position to zero
+    posX_steps = 0;
+    posY_steps = 0;
+    isResetting = false;
+}
+
+void GCodeHandler::handleHome() {
+    if (isHoming) {
+        Serial.println("Already homing.");
+        return;
+    }
+    isHoming = true;
+    Serial.println("Homing started...");
+    doHome();
+    isHoming = false;
+    Serial.println("Homing complete.");
+}
+
+void GCodeHandler::doHome() {
+    // Home X axis (move negative until limit)
+    stepperX.enable();
+    while (!limitX.isPressed()) {
+        if (isFeedHold || isPaused || isResetting) {
+            Serial.println("Homing interrupted.");
+            break;
+        }
+        stepperX.step(false, 1, 500);
+        delay(2);
+    }
+    posX_steps = 0;
+    // Home Y axis (move negative until limit)
+    stepperY.enable();
+    while (!limitY.isPressed()) {
+        if (isFeedHold || isPaused || isResetting) {
+            Serial.println("Homing interrupted.");
+            break;
+        }
+        stepperY.step(false, 1, 500);
+        delay(2);
+    }
+    posY_steps = 0;
+    stepperX.disable();
+    stepperY.disable();
 }
