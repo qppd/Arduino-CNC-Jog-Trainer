@@ -34,21 +34,23 @@ ClockModule clock;
 
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   stepperX.begin();
   stepperY.begin();
   limitX.begin();
   limitY.begin();
   buzzer.begin();
-  clock.begin();
+  //clock.begin();
   Serial.println("JogTrainer Initialized. Send commands: X+/X-/Y+/Y-/BUZ/CLOCK. Limit switches on X and Y.");
 }
 
 void loop() {
   // Simple serial command test for debugging
-  if (Serial.available()) {
+  if (Serial.available() > 0) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
+    Serial.println("CMD: " + cmd);
+
     if (cmd == "X+") {
       if (limitX.isPressed()) {
         Serial.println("X+ limit reached! Movement blocked.");
