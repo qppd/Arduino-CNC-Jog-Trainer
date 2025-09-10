@@ -5,6 +5,8 @@
 </p>
 
 ---
+#
+A modular C++ project for learning and controlling 2-axis CNC motion. Powered by an Arduino Uno/Nano, it supports stepper motor control (via TB6600 drivers), limit switches, buzzer feedback, DS3231 RTC integration, and G-code interpretation (G0/G1).
 
 ## ✨ Features
 
